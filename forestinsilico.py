@@ -1,6 +1,8 @@
 import tkiteasy as view
 import random as r
 
+#test
+
 # Debug tools
 def show_matrix(m) :
     for ligne in m:
