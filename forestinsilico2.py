@@ -24,7 +24,8 @@ class Modele :
 
     grid = []
     lapins_coord = []
-    f = 5
+    f = 1  #must be different from 0 on construction : Frequence de reproduction
+    f_active = 0
 
     def __init__(self, r) :
         self.f = r
@@ -115,6 +116,10 @@ class Modele :
                         repro = True
                     else :
                         enum.remove(di)
+                        if not(enum) :
+                            repro = True
+                            print("blue balls")
+                
 
         self.end_lapins_reproduction()
 
@@ -149,6 +154,7 @@ class Modele :
     def next_turn(self) :
         
         dim = len(self.grid)
+        self.f_active += 1
 
         # Lapin move
 
@@ -159,20 +165,30 @@ class Modele :
             l = self.grid[x][y]
             enum = ["right","left","up","down","dur","dul","ddl","ddr"]
             
-            while not(l.en_mouvement) :
-                l.dvlap -= 1
-                di = r.choice(enum)
-                ix, iy = self.move(di)
-                nx,ny = ix+x,iy+y
-                if (((nx < dim) and (nx >= 0)) and ((ny < dim) and (ny >= 0)) and (self.grid[nx][ny] == 0)) :
-                    self.grid[x][y] = 0
-                    self.grid[nx][ny] = l
-                    l.en_mouvement = True
-                else :
-                    enum.remove(di)
+            if l.dvlap == 0 :
+                self.grid[x][y] = 0
+                print("mort!")
+            
+            else :
+
+                while not(l.en_mouvement) :
+                    di = r.choice(enum)
+                    ix, iy = self.move(di)
+                    nx,ny = ix+x,iy+y
+                    if (((nx < dim) and (nx >= 0)) and ((ny < dim) and (ny >= 0)) and (self.grid[nx][ny] == 0)) :
+                        self.grid[x][y] = 0
+                        self.grid[nx][ny] = l
+                        l.dvlap -= 1
+                        l.en_mouvement = True
+                    else :
+                        enum.remove(di)
         
         self.end_lapins_move()
-        self.reproduce()
+        
+        if self.f_active == self.f :
+            self.f_active = 0
+            self.reproduce()
+            print("REPRODUCTION")
         
         
 
@@ -186,9 +202,9 @@ def show_matrix(m) :
             print("{:<8}".format(str(element)), end=' ')
         print()
 
-m = Modele(5)
+m = Modele(2)
 m.create_grid(10)
-m.spawn_lapins(10,5)
+m.spawn_lapins(15,5)
 print("Turn 0")
 grid = m.get_grid()
 show_matrix(grid)
