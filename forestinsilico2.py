@@ -21,12 +21,25 @@ class Lapin :
         return str
 
 class Renard :
-    pass
+    
+    dvren = 0
+    enerren = 0
+    en_mouvement = False
+    se_reproduit = False
+
+    def __init__(self, dv, en, b) :
+        self.dvren = dv
+        self.enerren = en
+        self.en_mouvement = b
+
+    def __str__(self) :
+        return "Fox"
 
 class Modele :
 
     grid = []
     lapins_coord = []
+    renards__coord = []
     f = 1  #must be different from 0 on construction : Frequence de reproduction
     f_active = 0
 
@@ -36,7 +49,7 @@ class Modele :
     # --- Printers --- #
     
     def print_pos_lapins(self) :
-        self.get_coordoones_lapins()
+        self.get_coordonnes_lapins()
         for i in range(len(self.lapins_coord)) :
             y,x = self.lapins_coord[i]
             print("Lapin à x:",x," y:",y)
@@ -46,7 +59,7 @@ class Modele :
     def get_grid(self) :
         return self.grid
 
-    def get_coordoones_lapins(self) :
+    def get_coordonnes_lapins(self) :
         self.lapins_coord = []
         for i in range(len(self.grid)) :
             for j in range(len(self.grid)) :
@@ -62,19 +75,30 @@ class Modele :
                     cpt+=1
         
         print(cpt)
+
+    def get_coordonnes_renards(self) :
+        self.renards__coord = []
+        for i in range(len(self.grid)) :
+            for j in range(len(self.grid)) :
+                if isinstance(self.grid[i][j],Renard) :
+                    self.renards__coord.append((i,j))
     
     # --- Setters --- #
     
     def end_lapins_move(self) :
-        self.get_coordoones_lapins()
+        self.get_coordonnes_lapins()
         for coords in self.lapins_coord :
             self.grid[coords[0]][coords[1]].en_mouvement = False
 
     def end_lapins_reproduction(self) :
-        self.get_coordoones_lapins()
+        self.get_coordonnes_lapins()
         for coords in self.lapins_coord :
             self.grid[coords[0]][coords[1]].gonna_reproduce = False
 
+    def end_renards_move(self) :
+        self.get_coordonnes_renards()
+        for coords in self.renards__coord :
+            self.grid[coords[0]][coords[1]].en_mouvement = False
     # --- Class methods --- #
 
     def create_grid(self,n) :
@@ -103,7 +127,7 @@ class Modele :
     def reproduce(self) :
         
         dim = len(self.grid)
-        self.get_coordoones_lapins()
+        self.get_coordonnes_lapins()
 
         for lapins in self.lapins_coord :
             enum = ["right","left","up","down","dur","dul","ddl","ddr"]
@@ -154,6 +178,16 @@ class Modele :
                 self.grid[x][y] = bunny
                 numbers -=1
 
+    def spawn_renards(self, numbers, dv, en) :
+        dim = len(self.grid)
+
+        while numbers > 0 :
+            x,y = r.randint(0,dim-1), r.randint(0,dim-1)
+            if self.grid[x][y] == 0 :
+                fox = Renard(dv, en, False)
+                self.grid[x][y] = fox
+                numbers -=1
+
     def next_turn(self) :
         
         dim = len(self.grid)
@@ -161,21 +195,21 @@ class Modele :
 
         # Lapin move
 
-        self.get_coordoones_lapins()
+        self.get_coordonnes_lapins()
 
         for i in range(len(self.lapins_coord)) :
             x,y = self.lapins_coord[i]
             l = self.grid[x][y]
-            enum = ["right","left","up","down","dur","dul","ddl","ddr"]
+            enum_l = ["right","left","up","down","dur","dul","ddl","ddr"]
             
             if l.dvlap == 0 :
                 self.grid[x][y] = 0
-                print("mort!")
+                print("lapin mort!")
             
             else :
 
                 while not(l.en_mouvement) :
-                    di = r.choice(enum)
+                    di = r.choice(enum_l)
                     ix, iy = self.move(di)
                     nx,ny = ix+x,iy+y
                     if (((nx < dim) and (nx >= 0)) and ((ny < dim) and (ny >= 0)) and (self.grid[nx][ny] == 0)) :
@@ -184,8 +218,8 @@ class Modele :
                         l.dvlap -= 1
                         l.en_mouvement = True
                     else :
-                        enum.remove(di)
-                        if not(enum) :
+                        enum_l.remove(di)
+                        if not(enum_l) :
                             l.en_mouvement = True
                             print("Can't move")
         
@@ -195,6 +229,39 @@ class Modele :
             self.f_active = 0
             self.reproduce()
             print("REPRODUCTION")
+
+        # Renard Move
+
+        self.get_coordonnes_renards()
+
+        for i in range(len(self.renards__coord)) :
+            x,y = self.renards__coord[i]
+            ren = self.grid[x][y]
+            enum_r = ["right","left","up","down","dur","dul","ddl","ddr"]
+        
+            if ren.dvren == 0 :
+                self.grid[x][y] = 0
+                print("renard mort!")
+
+            else :
+
+                while not(ren.en_mouvement) :
+                    di = r.choice(enum_r)
+                    ix, iy = self.move(di)
+                    nx,ny = ix+x,iy+y
+                    if (((nx < dim) and (nx >= 0)) and ((ny < dim) and (ny >= 0)) and (self.grid[nx][ny] == 0)) :
+                        print("renard bouge")
+                        self.grid[x][y] = 0
+                        self.grid[nx][ny] = ren
+                        ren.dvren -= 1
+                        ren.en_mouvement = True
+                    else :
+                        enum_r.remove(di)
+                        if not(enum_r) :
+                            ren.en_mouvement = True
+                            print("Can't move")
+        
+        self.end_renards_move()
         
         
 
@@ -210,7 +277,8 @@ def show_matrix(m) :
 
 m = Modele(2)
 m.create_grid(10)
-m.spawn_lapins(30,5)
+#m.spawn_lapins(30,5)
+m.spawn_renards(1,7,5)
 print("Turn 0")
 grid = m.get_grid()
 show_matrix(grid)
