@@ -1,4 +1,5 @@
 import random as r
+import time
 
 r.seed(0)
 
@@ -6,18 +7,27 @@ class Lapin :
     
     dvlap = 0
     en_mouvement = False
+    gonna_reproduce = False
     
     def __init__(self,dv,b) :
         self.dvlap = dv
         self.en_mouvement = b
 
     def __str__(self) :
-        return "Lapin"
+        str = "Lapin"
+        if self.dvlap == 5 :
+            str +="B"
+        
+        return str
 
 class Modele :
 
     grid = []
     lapins_coord = []
+    f = 5
+
+    def __init__(self, r) :
+        self.f = r
     
     # --- Printers --- #
     
@@ -56,6 +66,11 @@ class Modele :
         for coords in self.lapins_coord :
             self.grid[coords[0]][coords[1]].en_mouvement = False
 
+    def end_lapins_reproduction(self) :
+        self.get_coordoones_lapins()
+        for coords in self.lapins_coord :
+            self.grid[coords[0]][coords[1]].gonna_reproduce = False
+
     # --- Class methods --- #
 
     def create_grid(self,n) :
@@ -65,16 +80,43 @@ class Modele :
 
     def can_reproduce(self,x,y) :
         
-        can = False
+        if self.grid[x][y].gonna_reproduce :
+            return False
+
+        dim = len(self.grid)
+
         close = [-1,1]
-        where = []
 
         for i in close :
             for j in close :
-                if isinstance(self.grid[x+i][y+j],Lapin) and (self.grid[x+i][y+j].en_mouvement) :
-                    return can
+                if (((x+i < dim) and (x+i >= 0)) and ((y+j < dim) and (y+j >= 0))) :
+                    if isinstance(self.grid[x+i][y+j],Lapin) and not(self.grid[x+i][y+j].gonna_reproduce):
+                        self.grid[x+i][y+j].gonna_reproduce = True
+                        return True
+                    
+        return False
+
+    def reproduce(self) :
         
-        return can
+        dim = len(self.grid)
+        self.get_coordoones_lapins()
+
+        for lapins in self.lapins_coord :
+            enum = ["right","left","up","down","dur","dul","ddl","ddr"]
+            if self.can_reproduce(lapins[0],lapins[1]) :
+                repro = False
+                while not(repro) :
+                    di = r.choice(enum)
+                    ix, iy = self.move(di)
+                    nx,ny = ix+lapins[0],iy+lapins[1]
+                    if (((nx < dim) and (nx >= 0)) and ((ny < dim) and (ny >= 0)) and (self.grid[nx][ny] == 0)) :
+                        baby_lapin = Lapin(5,False)
+                        self.grid[nx][ny] = baby_lapin
+                        repro = True
+                    else :
+                        enum.remove(di)
+
+        self.end_lapins_reproduction()
 
     def move(self,str) :
         if str == "right":
@@ -122,8 +164,6 @@ class Modele :
                 di = r.choice(enum)
                 ix, iy = self.move(di)
                 nx,ny = ix+x,iy+y
-                print("nx",nx,"ny",ny)
-                print("ix",ix,"iy",iy)
                 if (((nx < dim) and (nx >= 0)) and ((ny < dim) and (ny >= 0)) and (self.grid[nx][ny] == 0)) :
                     self.grid[x][y] = 0
                     self.grid[nx][ny] = l
@@ -132,6 +172,8 @@ class Modele :
                     enum.remove(di)
         
         self.end_lapins_move()
+        self.reproduce()
+        
         
 
 ### MAIN ###
@@ -144,26 +186,21 @@ def show_matrix(m) :
             print("{:<8}".format(str(element)), end=' ')
         print()
 
-m = Modele()
+m = Modele(5)
 m.create_grid(10)
 m.spawn_lapins(10,5)
-
-print("Turn 1")
+print("Turn 0")
 grid = m.get_grid()
 show_matrix(grid)
 print()
-m.print_pos_lapins()
 
-print("Turn 2")
-m.next_turn()
-grid = m.get_grid()
-show_matrix(grid)
-print()
-m.print_pos_lapins()
+for i in range(1,11) :
 
-print("Turn 3")
-m.next_turn()
-grid = m.get_grid()
-show_matrix(grid)
-print()
-m.print_pos_lapins()
+    print("Turn", i)
+    m.next_turn()
+    grid = m.get_grid()
+    show_matrix(grid)
+    print()
+    #m.print_pos_lapins()
+    time.sleep(2.5)
+
