@@ -20,6 +20,9 @@ class Lapin :
         
         return str
 
+class Renard :
+    pass
+
 class Modele :
 
     grid = []
@@ -182,6 +185,9 @@ class Modele :
                         l.en_mouvement = True
                     else :
                         enum.remove(di)
+                        if not(enum) :
+                            l.en_mouvement = True
+                            print("Can't move")
         
         self.end_lapins_move()
         
@@ -204,7 +210,7 @@ def show_matrix(m) :
 
 m = Modele(2)
 m.create_grid(10)
-m.spawn_lapins(15,5)
+m.spawn_lapins(30,5)
 print("Turn 0")
 grid = m.get_grid()
 show_matrix(grid)
