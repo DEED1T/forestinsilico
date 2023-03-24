@@ -1,6 +1,8 @@
 import random as r
 import time
 
+from tkiteasy import *
+
 r.seed(0)
 
 class Lapin :
@@ -17,6 +19,8 @@ class Lapin :
         str = "Lapin"
         if self.dvlap == 5 :
             str +="B"
+        elif self.dvlap == 5 :
+            str+="J"
         
         return str
 
@@ -25,7 +29,7 @@ class Renard :
     dvren = 0
     enerren = 0
     en_mouvement = False
-    se_reproduit = False
+    gonna_reproduce = False
     flair = 0
 
     def __init__(self, dv, en, b, f) :
@@ -78,6 +82,16 @@ class Modele :
         
         print(cpt)
 
+    def get_renards_total_numbers(self) :
+        cpt = 0
+
+        for i in range(len(self.grid)) :
+            for j in range(len(self.grid)) :
+                if isinstance(self.grid[i][j],Renard) :
+                    cpt+=1
+        
+        print(cpt)
+
     def get_coordonnes_renards(self) :
         self.renards_coord = []
         for i in range(len(self.grid)) :
@@ -118,9 +132,16 @@ class Modele :
         for i in range(-1,2) :
             for j in range(-1,2) :
                 if (((x+i < dim) and (x+i >= 0)) and ((y+j < dim) and (y+j >= 0))) :
-                    if isinstance(self.grid[x+i][y+j],Lapin) and not(self.grid[x+i][y+j].gonna_reproduce):
-                        self.grid[x+i][y+j].gonna_reproduce = True
-                        return True
+                    if isinstance(self.grid[x+i][y+j],Lapin) or isinstance(self.grid[x+i][y+j],Renard) :
+                        if (isinstance(self.grid[x+i][y+j],Lapin) == isinstance(self.grid[x][y],Lapin)) and not(self.grid[x+i][y+j].gonna_reproduce):
+                            self.grid[x+i][y+j].gonna_reproduce = True
+                            return True
+                        elif (isinstance(self.grid[x+i][y+j],Renard) == isinstance(self.grid[x][y],Renard)) and not(self.grid[x+i][y+j].gonna_reproduce) :
+                            if (self.grid[x+i][y+j].enerren >= 5) and (self.grid[x][y].enerren >= 5) :
+                                self.grid[x+i][y+j].gonna_reproduce = True
+                                self.grid[x+i][y+j].enerren -= 5 
+                                self.grid[x][y].enerren -= 5
+                                return True 
                     
         return False
 
@@ -145,10 +166,31 @@ class Modele :
                         enum.remove(di)
                         if not(enum) :
                             repro = True
-                            print("blue balls")
+                            #print("blue balls")
                 
-
         self.end_lapins_reproduction()
+        
+        self.get_coordonnes_renards()
+
+        for renard in self.renards_coord :
+            enum = ["right","left","up","down","dur","dul","ddl","ddr"]
+            if self.can_reproduce(renard[0],renard[1]) :
+                repro = False
+                while not(repro) :
+                    di = r.choice(enum)
+                    ix, iy = self.move(di)
+                    nx,ny = ix+renard[0],iy+renard[1]
+                    if (((nx < dim) and (nx >= 0)) and ((ny < dim) and (ny >= 0)) and (self.grid[nx][ny] == 0)) :
+                        baby_renard= Renard(7,0,False,self.grid[renard[0]][renard[1]].flair)
+                        self.grid[nx][ny] = baby_renard
+                        repro = True
+                    else :
+                        enum.remove(di)
+                        if not(enum) :
+                            repro = True
+                            #print("blue balls")
+
+        
 
     def mange(self,x,y) :
         
@@ -159,7 +201,7 @@ class Modele :
 
                 if (((x+i < dim) and (x+i >= 0)) and ((y+j < dim) and (y+j >= 0))) :
                     if isinstance(self.grid[x+i][y+j],Lapin) :
-                        self.grid[x][y].enerren += 1
+                        self.grid[x][y].enerren += 3
                         self.grid[x+i][y+j] = self.grid[x][y]
                         self.grid[x][y] = 0
                         #print("Renard à mangé lapin à x:",y+j,"y:",x+i)
@@ -255,7 +297,7 @@ class Modele :
 
         for i in range(len(self.renards_coord)) :
             x,y = self.renards_coord[i]
-            print("renard à x:",y,"y:",x)
+            #print("renard à x:",y,"y:",x)
             ren = self.grid[x][y]
             enum_r = ["right","left","up","down","dur","dul","ddl","ddr"]
 
@@ -263,11 +305,11 @@ class Modele :
 
             if ren.dvren == 0 :
                 self.grid[x][y] = 0
-                print("renard mort!")
+                #print("renard mort!")
 
             elif self.mange(x,y) :
                 ren.en_mouvement = True
-                print("J'ai trop manger donc je ne bouge pas")
+                #print("J'ai trop manger donc je ne bouge pas")
 
             elif cherche_lapin != None :
                 dx,dy = self.chasse(x,y,cherche_lapin)
@@ -309,7 +351,7 @@ class Modele :
             
             if l.dvlap == 0 :
                 self.grid[x][y] = 0
-                print("lapin mort!") 
+                #print("lapin mort!") 
             
             else :
 
@@ -346,15 +388,15 @@ def show_matrix(m) :
         print()
 
 m = Modele(2)
-m.create_grid(20)
-m.spawn_lapins(10,5)
-m.spawn_renards(2,7,5)
+m.create_grid(30)
+m.spawn_lapins(30,5)
+m.spawn_renards(15,15,7)
 print("Turn 0")
 grid = m.get_grid()
 show_matrix(grid)
 print("====================")
 
-for i in range(1,11) :
+for i in range(1,101) :
 
     print("Turn", i)
     m.next_turn()
@@ -363,5 +405,9 @@ for i in range(1,11) :
     show_matrix(grid)
     print("==================")
     #m.print_pos_lapins()
-    time.sleep(10)
+    #time.sleep(10)
+
+m.get_lapins_total_numbers()
+m.get_renards_total_numbers()
+
 
