@@ -425,12 +425,22 @@ def erase(list) :
             g.supprimer(c)
 
 
-g = ouvrirFenetre(1000,1000)
+FNLAP = 0
+DVLAP = 0
+FRREP = 0 #Fréquence reproduction
 
-m = Modele(4)
+INITREN = 0
+DVREN = 0
+ENREN = 0
+MIAM = 0
+
+
+g = ouvrirFenetre(1200,1200)
+
+m = Modele(3)
 m.create_grid(30)
 m.spawn_lapins(30,5)
-m.spawn_renards(7,15,5)
+m.spawn_renards(7,10,5)
 list = paint(m.get_grid(),[])
 
 while(True) :
