@@ -3,7 +3,7 @@ import time
 
 from tkiteasy import *
 
-r.seed(0)
+#r.seed(0)
 
 class Lapin :
     
@@ -374,40 +374,75 @@ class Modele :
         
         
 
-        
-        
-
 ### MAIN ###
 
-
-# Debug
 def show_matrix(m) :
     for ligne in m:
         for element in ligne:
             print("{:<8}".format(str(element)), end=' ')
         print()
 
+# --- Vue --- #
+
+
+
+def paint(grid,list) : 
+
+    erase(list)
+    p_list = []
+
+    taille_grid = len(grid)
+
+    case_w = 1000 // taille_grid
+    case_h = 1000 // taille_grid
+
+    for i in range(taille_grid) :
+        for j in range(taille_grid) :
+            
+            x1 = i * case_w 
+            y1 = j * case_h 
+            x2 = ((i + 1) * case_w) 
+            y2 = ((j + 1) * case_h) 
+
+            
+
+            if isinstance(grid[i][j],Lapin) :
+                p = g.dessinerRectangle(x1,y1,20,20,"green")
+                p_list.append(p)
+
+            elif isinstance(grid[i][j],Renard) :
+                p = g.dessinerRectangle(x1,y1,20,20,"red")
+                p_list.append(p)
+
+    g.actualiser()
+    return p_list
+
+def erase(list) :
+    if list :
+        for c in list :
+            print("c", c.num)
+            g.supprimer(c)
+
+
+g = ouvrirFenetre(1000,1000)
+
 m = Modele(2)
 m.create_grid(30)
 m.spawn_lapins(30,5)
 m.spawn_renards(15,15,7)
-print("Turn 0")
-grid = m.get_grid()
-show_matrix(grid)
-print("====================")
+list = paint(m.get_grid(),[])
 
-for i in range(1,101) :
+while(True) :
+    clic = g.attendreClic()
+    if clic.num == 1 :
+        m.next_turn()
+        list = paint(m.get_grid(),list)
+        g.actualiser()
+    if clic.num == 3 :
+        break
 
-    print("Turn", i)
-    m.next_turn()
-    grid = m.get_grid()
-    print("After")
-    show_matrix(grid)
-    print("==================")
-    #m.print_pos_lapins()
-    #time.sleep(10)
-
-m.get_lapins_total_numbers()
-m.get_renards_total_numbers()
-
+erase(list)
+g.afficherTexte("Cliquez pour quitter",400,50,"white")
+g.attendreClic()
+g.fermerFenetre()
 
