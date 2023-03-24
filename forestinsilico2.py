@@ -317,8 +317,9 @@ class Modele :
                 self.grid[x][y] = 0
                 self.grid[nx][ny] = ren
                 ren.dvren -= 1
+                ren.enerren -= 1
                 ren.en_mouvement = True
-                print("Je chasse")
+                #print("Je chasse")
 
             else :
 
@@ -327,10 +328,11 @@ class Modele :
                     ix, iy = self.move(di)
                     nx,ny = ix+x,iy+y
                     if (((nx < dim) and (nx >= 0)) and ((ny < dim) and (ny >= 0)) and (self.grid[nx][ny] == 0)) :
-                        print("renard bouge")
+                        #print("renard bouge")
                         self.grid[x][y] = 0
                         self.grid[nx][ny] = ren
                         ren.dvren -= 1
+                        ren.enerren -= 1
                         ren.en_mouvement = True
                     else :
                         enum_r.remove(di)
@@ -407,11 +409,11 @@ def paint(grid,list) :
             
 
             if isinstance(grid[i][j],Lapin) :
-                p = g.dessinerRectangle(x1,y1,20,20,"green")
+                p = g.dessinerDisque(x1,y1,10,"green")
                 p_list.append(p)
 
             elif isinstance(grid[i][j],Renard) :
-                p = g.dessinerRectangle(x1,y1,20,20,"red")
+                p = g.dessinerDisque(x1,y1,10,"red")
                 p_list.append(p)
 
     g.actualiser()
@@ -420,16 +422,15 @@ def paint(grid,list) :
 def erase(list) :
     if list :
         for c in list :
-            print("c", c.num)
             g.supprimer(c)
 
 
 g = ouvrirFenetre(1000,1000)
 
-m = Modele(2)
+m = Modele(4)
 m.create_grid(30)
 m.spawn_lapins(30,5)
-m.spawn_renards(15,15,7)
+m.spawn_renards(7,15,5)
 list = paint(m.get_grid(),[])
 
 while(True) :
