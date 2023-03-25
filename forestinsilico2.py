@@ -333,12 +333,18 @@ class Modele :
             elif cherche_lapin != None :
                 dx,dy = self.chasse(x,y,cherche_lapin)
                 nx,ny = dx+x,dy+y
-                self.grid[x][y] = 0
-                self.grid[nx][ny] = ren
-                ren.dvren -= 1
-                ren.enerren -= 1
-                ren.en_mouvement = True
-                #print("Je chasse")
+                if (((nx < dim) and (nx >= 0)) and ((ny < dim) and (ny >= 0)) and (self.grid[nx][ny] == 0)) :
+
+                    self.grid[x][y] = 0
+                    self.grid[nx][ny] = ren
+                    ren.dvren -= 1
+                    ren.enerren -= 1
+                    ren.en_mouvement = True
+                    #print("Je chasse")
+                else :
+                    ren.en_mouvement = True
+                    
+
 
             else :
 
@@ -450,17 +456,17 @@ def erase(list) :
 
 ## MAIN ##
 
-INITLAP = 0
-FNLAP = 0
-NLAP = 0
-DVLAP = 0
-FRREP = 0 #Fréquence reproduction
+INITLAP = 20
+FNLAP = 4
+NLAP = 5
+DVLAP = 5
+FRREP = 3 #Fréquence reproduction
 
-INITREN = 0
-DVREN = 0
+INITREN = 5
+DVREN = 10
 ENREN = 0
-MIAM = 0
-FLAIR = 0
+MIAM = 3
+FLAIR = 7
 
 TOURS = 30
 
