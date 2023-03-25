@@ -11,6 +11,7 @@ class Lapin :
     en_mouvement = False
     gonna_reproduce = False
     
+    
     def __init__(self,dv,b) :
         self.dvlap = dv
         self.en_mouvement = b
@@ -46,11 +47,27 @@ class Modele :
     grid = []
     lapins_coord = []
     renards_coord = []
+    
     f = 1  #must be different from 0 on construction : Frequence de reproduction
     f_active = 0
+    n = 1 
+    n_active = 0
+    nb = 1
+    m = 1
 
-    def __init__(self, r) :
+    dvlap = 0
+    dvren = 0
+
+    # m = Modele(FRREP,FNLAP,NLAP,MIAM)
+
+
+    def __init__(self, r,fnlap,nlap,miam,dvl,dvr) :
         self.f = r
+        self.n = fnlap
+        self.nb = nlap
+        self.m = miam
+        self.dvlap = dvl
+        self.dvren = dvr
     
     # --- Printers --- #
     
@@ -181,7 +198,7 @@ class Modele :
                     ix, iy = self.move(di)
                     nx,ny = ix+renard[0],iy+renard[1]
                     if (((nx < dim) and (nx >= 0)) and ((ny < dim) and (ny >= 0)) and (self.grid[nx][ny] == 0)) :
-                        baby_renard= Renard(7,0,False,self.grid[renard[0]][renard[1]].flair)
+                        baby_renard= Renard(self.dvren,0,False,self.grid[renard[0]][renard[1]].flair)
                         self.grid[nx][ny] = baby_renard
                         repro = True
                     else :
@@ -201,7 +218,7 @@ class Modele :
 
                 if (((x+i < dim) and (x+i >= 0)) and ((y+j < dim) and (y+j >= 0))) :
                     if isinstance(self.grid[x+i][y+j],Lapin) :
-                        self.grid[x][y].enerren += 3
+                        self.grid[x][y].enerren += self.m
                         self.grid[x+i][y+j] = self.grid[x][y]
                         self.grid[x][y] = 0
                         #print("Renard à mangé lapin à x:",y+j,"y:",x+i)
@@ -291,6 +308,8 @@ class Modele :
             self.reproduce()
             print("REPRODUCTION")
 
+        
+
         # Renard Move
 
         self.get_coordonnes_renards()
@@ -374,6 +393,10 @@ class Modele :
         
         self.end_lapins_move()
         
+        if self.n_active == self.n :
+            self.n_active = 0
+            self.spawn_lapins(self.nb,self.dvlap)
+            print("Spawn lapins")
         
 
 ### MAIN ###
@@ -425,7 +448,11 @@ def erase(list) :
             g.supprimer(c)
 
 
+## MAIN ##
+
+INITLAP = 0
 FNLAP = 0
+NLAP = 0
 DVLAP = 0
 FRREP = 0 #Fréquence reproduction
 
@@ -433,27 +460,26 @@ INITREN = 0
 DVREN = 0
 ENREN = 0
 MIAM = 0
+FLAIR = 0
+
+TOURS = 30
 
 
 g = ouvrirFenetre(1200,1200)
 
-m = Modele(3)
+m = Modele(FRREP,FNLAP,NLAP,MIAM,DVLAP,DVREN)
 m.create_grid(30)
-m.spawn_lapins(30,5)
-m.spawn_renards(7,10,5)
+m.spawn_lapins(INITLAP,DVLAP)
+m.spawn_renards(INITREN,DVREN,FLAIR)
 list = paint(m.get_grid(),[])
 
-while(True) :
-    clic = g.attendreClic()
-    if clic.num == 1 :
-        m.next_turn()
-        list = paint(m.get_grid(),list)
-        g.actualiser()
-    if clic.num == 3 :
-        break
-
-erase(list)
-g.afficherTexte("Cliquez pour quitter",400,50,"white")
+while(TOURS > 0) :
+    m.next_turn()
+    list = paint(m.get_grid(),list)
+    g.actualiser()
+    TOURS -=1
+    time.sleep(3)
+    
 g.attendreClic()
 g.fermerFenetre()
 
