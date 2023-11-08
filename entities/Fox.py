@@ -1,16 +1,18 @@
-class Fox :
+class Fox(object):
     
-    dvren = 0
-    enerren = 0
-    en_mouvement = False
-    gonna_reproduce = False
+    lifetime = 0
+    energy = 0
     flair = 0
 
-    def __init__(self, dv, en, b, f) :
-        self.dvren = dv
-        self.enerren = en
-        self.en_mouvement = b
-        self.flair = f
+    in_motion = False
+    gonna_reproduce = False
+    baby = False
 
-    def __str__(self) :
+    def __init__(self, lifetime, energy, in_motion, flair):
+        self.lifetime = lifetime
+        self.energy = energy
+        self.en_mouvement = in_motion
+        self.flair = flair
+
+    def __str__(self):
         return "Fox"

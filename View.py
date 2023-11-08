@@ -32,6 +32,8 @@ def paint(display, grid, list):
             y1 = j * case_h
 
             if isinstance(grid[i][j], Rabbit.Rabbit):
+                # infos = "i:", i , " j:" , j , " M:" , grid[i][j].in_motion, grid[i][j].lifetime
+                # p = display.afficherTexte(infos, x1, y1)
                 p = display.dessinerDisque(x1, y1, 10, "green")
                 p_list.append(p)
 

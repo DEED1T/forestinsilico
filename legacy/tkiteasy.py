@@ -43,7 +43,7 @@ class Canevas(tk.Canvas):
 # CREATION D'OBJETS
 ################################################################################
 
-    def afficherTexte(self, txt, x, y, col="white", sizefont=18):
+    def afficherTexte(self, txt, x, y, col="white", sizefont=12):
         font = tkFont.Font(family='Helvetica', size=sizefont, weight='normal')
         return ObjetGraphique(self.create_text(x,y,fill=col, text=txt, font=font), x, y, col)
 
