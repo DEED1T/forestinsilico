@@ -7,6 +7,7 @@ class Fox(object):
     in_motion = False
     gonna_reproduce = False
     baby = False
+    is_partner = False
 
     def __init__(self, lifetime, energy, in_motion, flair):
         self.lifetime = lifetime

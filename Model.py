@@ -4,8 +4,6 @@ import copy
 import entities.Fox as F
 import entities.Rabbit as R
 
-import View
-
 rng.seed(0)
 
 
@@ -30,11 +28,12 @@ class Model:
 
     turn = 1
 
-    freq_reprod = 1  # must be different from 0
-    actual_reprod = int
+    freq_reprod = int  # must be different from 0
+    actual_reprod = 0
 
     # Vars for RABBIT ----------------------------------------------------------------------------------------------- #
 
+    enable_birth = False
     births = int
     freq_birth = int
     actual_birth = int
@@ -82,6 +81,20 @@ class Model:
         for animal in self.rabbit_list+self.fox_list:
             animal[2].in_motion = False
 
+    def update_rabbit(self, tuple_rabbit):
+        """update Rabbit object in grid based on data in rabbit_list"""
+        x,y = tuple_rabbit[0], tuple_rabbit[1]
+        bunny = tuple_rabbit[2]
+
+        self.grid[x][y] = bunny
+
+    def update_fox(self,tuple_fox):
+        """update Fox object in grid based on data in rabbit_list"""
+        x, y = tuple_fox[0], tuple_fox[1]
+        fox = tuple_fox[2]
+
+        self.grid[x][y] = fox
+
     # Model ------------------------------------------------------------------------------------------------------- #
 
     def create_grid(self, n):
@@ -101,6 +114,27 @@ class Model:
                 amount -= 1
 
         self.get_pos_of_everybody()
+
+    def spawn_baby(self, animal):
+
+        enum_dir = copy.deepcopy(self.DIRECTION)
+
+        while enum_dir:
+
+            direction = rng.choice(enum_dir)
+            dx, dy = self.DIRECTION_COORD[direction]
+            new_x, new_y = animal[0] + dx, animal[1] + dy
+
+            if self.grid[new_x][new_y] == 0:
+                if isinstance(animal[2], R.Rabbit):
+                    # TODO gérer la value baby : les bébés se reproduisent avec les parents à la naissance
+                    self.grid[new_x][new_y] = R.Rabbit(self.lifetime_rabbit, False, True)
+                    self.rabbit_list.append([new_x, new_y, self.grid[new_x][new_y]])
+                elif isinstance(animal[2], F.Fox):
+                    self.grid[new_x][new_y] = F.Fox(self.lifetime_rabbit, self.energy, False, self.flair)
+                return True
+            enum_dir.remove(direction)
+        return False
 
     def move(self, animal):
         enum_dir = copy.deepcopy(self.DIRECTION)
@@ -123,30 +157,22 @@ class Model:
     def rabbits_move(self):
         for bunny in self.rabbit_list:
             if bunny[2].lifetime <= 0:
-                # Rabbit die naturrally
+                # Rabbit die naturally
                 self.grid[bunny[0]][bunny[1]] = 0
                 self.rabbit_list.remove(bunny)
             else:
                 self.move(bunny)
+                if self.can_breed(bunny):
+                    print("BREED")
 
     def foxes_move(self):
         for fox in self.fox_list:
             if fox[2].lifetime <= 0:
-                # Fox die naturrally
+                # Fox die naturally
                 self.grid[fox[0]][fox[1]] = 0
                 self.fox_list.remove(fox)
             else:
                 self.move(fox)
-
-    def next_turn(self):
-        self.rabbits_move()
-        self.foxes_move()
-        self.end_motion()
-
-        if self.turn % self.freq_birth == 0:
-            self.spawn(self.births, "rabbit")
-
-        self.turn += 1
 
     def can_breed(self, animal):
         enum_dir = copy.deepcopy(self.DIRECTION)
@@ -156,12 +182,43 @@ class Model:
             direction = rng.choice(enum_dir)
             dx, dy = self.DIRECTION_COORD[direction]
             new_x, new_y = animal[0] + dx, animal[1] + dy
-            if isinstance(self.get_at(new_x, new_y), animal):
-                if not self.get_at(new_x, new_y).will_repro:
+            partner = self.get_at(new_x, new_y)
+            if isinstance(self.get_at(new_x, new_y), F.Fox) or isinstance(self.get_at(new_x, new_y), R.Rabbit):
+                if not partner.will_reproduce and not partner.is_partner:
+                    animal[2].will_reproduce = True
+                    partner.is_partner = True
                     return True
+            enum_dir.remove(direction)
 
         return False
 
     def breed(self):
-        for bunny in self.rabbit_list:
-            pass
+
+        if self.actual_reprod >= self.freq_reprod:
+            self.actual_reprod = 0
+            for bunny in self.rabbit_list:
+                if bunny[2].will_reproduce:
+                    print(self.spawn_baby(bunny))
+
+            for fox in self.fox_list:
+                if fox[2].will_reproduce:
+                    self.spawn_baby(fox)
+
+    def reset(self):
+        for animal in self.rabbit_list or self.fox_list:
+            animal[2].will_reproduce = False
+            animal[2].is_partner = False
+
+    def next_turn(self):
+        self.reset()
+        self.rabbits_move()
+        self.foxes_move()
+        self.end_motion()
+        self.breed()
+
+        self.actual_reprod += 1
+
+        if self.turn % self.freq_birth == 0 and self.enable_birth:
+            self.spawn(self.births, "rabbit")
+
+        self.turn += 1
